@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
         currentAudio: null,
         currentlyPlayingIndex: null,
         songsFolder: '/songs/',
-        
 
         async fetchSongsFromFolder(folderPath) {
             try {
@@ -12,27 +11,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error('No folder path specified.');
                 }
 
-                const jsonPath = `/songs/${folderPath}.json`;
-                console.log('Fetching playlist JSON from:', jsonPath);
+                const fullPath = this.songsFolder + folderPath + '/';
+                console.log('Fetching songs from:', fullPath);
 
-                let response = await fetch(jsonPath);
+                let response = await fetch(fullPath);
                 if (!response.ok) {
-                    if (response.status === 404) {
-                        console.warn(`Playlist JSON not found: ${jsonPath}`);
-                        return []; // Return empty array for 404
-                    }
                     throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
                 }
 
-                const data = await response.json();
-                const newSongs = data.songs
-                    .map(song => ({
-                        name: song.name,
-                        url: `/${this.songsFolder}${encodeURIComponent(folderPath)}/${encodeURIComponent(song.name)}` // Encode both folder and file name
+                const data = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data, 'text/html');
+                const links = doc.getElementsByTagName('a');
+
+                const newSongs = Array.from(links)
+                    .filter(link => link.href.endsWith('.mp3'))
+                    .map(link => ({
+                        name: decodeURIComponent(link.href.split('/').pop()),
+                        url: fullPath + decodeURIComponent(link.href.split('/').pop())
                     }))
                     .sort((a, b) => a.name.localeCompare(b.name));
 
-                console.log('Fetched songs from JSON with encoded URLs:', newSongs);
+                console.log('Fetched songs:', newSongs);
                 if (newSongs.length === 0) {
                     this.showError(`No MP3 files found in ${folderPath}.`);
                 }
@@ -128,8 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.currentlyPlayingIndex = parseInt(index);
 
             try {
-                console.log('Attempting to play:', song.url);
-                await new Promise((resolve, reject) => {
+                await new Promise((resolve) => {
                     this.currentAudio.addEventListener('loadedmetadata', () => {
                         const totalMinutes = Math.floor(this.currentAudio.duration / 60);
                         const totalSeconds = Math.floor(this.currentAudio.duration % 60).toString().padStart(2, '0');
@@ -139,13 +138,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                         resolve();
                     }, { once: true });
-                    this.currentAudio.addEventListener('error', () => {
-                        reject(new Error('Failed to load audio metadata'));
-                    }, { once: true });
                 });
 
                 await this.currentAudio.play();
-                console.log('Successfully playing:', song.url);
                 this.updatePlayButtons(index, 'Pause');
                 this.updatePlaybar('playing', song.name);
                 this.updateSongInfo(song.name);
@@ -153,8 +148,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.currentAudio.addEventListener('timeupdate', () => this.updateProgressBar());
                 this.currentAudio.addEventListener('ended', () => this.nextSong());
             } catch (error) {
-                console.error('Error playing song:', error, 'URL:', song.url);
-                this.showError(`Failed to play "${song.name}": ${error.message || 'Check file path, format, or deployment'}`);
+                console.error('Error playing song:', error);
+                this.showError(`Failed to play "${song.name}": ${error.message}`);
                 this.currentAudio = null;
                 this.currentlyPlayingIndex = null;
                 this.updatePlaybar('paused');
@@ -164,19 +159,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         togglePlayPause(index) {
             const selectedButton = document.querySelector(`.play-btn[data-index="${index}"]`);
-            if (!selectedButton) {
-                console.error('Play button not found for index:', index);
-                return;
-            }
-
-            console.log('Toggle Play/Pause for index:', index, 'Current Audio:', this.currentAudio, 'Current Index:', this.currentlyPlayingIndex);
-
             if (this.currentAudio && this.currentlyPlayingIndex === parseInt(index)) {
                 if (this.currentAudio.paused) {
                     this.currentAudio.play().then(() => {
                         selectedButton.textContent = 'Pause';
                         this.updatePlaybar('playing');
-                        console.log('Playing song from list:', this.currentAudio.src);
                     }).catch(error => {
                         console.error('Error resuming playback:', error);
                         this.showError('Failed to resume playback.');
@@ -185,7 +172,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.currentAudio.pause();
                     selectedButton.textContent = 'Play';
                     this.updatePlaybar('paused');
-                    console.log('Paused song from list:', this.currentAudio.src);
                 }
             } else {
                 this.playSong(index);
@@ -199,8 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            console.log('Play/Pause clicked - Audio:', this.currentAudio, 'Songs:', this.songs.length);
-
             if (!this.songs.length) {
                 this.showError('Please Select Playlist.');
                 return;
@@ -212,7 +196,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         playButtonImg.src = 'img/pause.svg';
                         this.updatePlayButtonInList('Pause');
                         this.updatePlaybar('playing');
-                        console.log('Playing song:', this.currentAudio.src);
                     }).catch(error => {
                         console.error('Error resuming playback:', error);
                         this.showError('Failed to resume playback.');
@@ -222,7 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     playButtonImg.src = 'img/play.svg';
                     this.updatePlayButtonInList('Play');
                     this.updatePlaybar('paused');
-                    console.log('Paused song:', this.currentAudio.src);
                 }
             } else {
                 this.playSong(0);
@@ -385,33 +367,29 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector(".range").getElementsByTagName("input")[0].addEventListener("change", (e) => {
         if (musicLibrary.currentAudio) {
             musicLibrary.currentAudio.volume = parseInt(e.target.value) / 100;
-            const volumeImg = document.querySelector(".volume>img");
-            if (musicLibrary.currentAudio.volume > 0) {
-                volumeImg.src = volumeImg.src.includes("mute.svg") ? "img/volume.svg" : volumeImg.src;
-            } else {
-                volumeImg.src = volumeImg.src.includes("volume.svg") ? "img/mute.svg" : volumeImg.src;
-            }
+        }
+        if(currentAudio.volume>0){
+            document.querySelector(".volume>img").src = document.querySelector(".volume>img").src.replace("mute.svg", "volume.svg");
         }
     });
 
     document.querySelector(".volume>img").addEventListener("click", e => {
-        if (musicLibrary.currentAudio) {
-            const rangeInput = document.querySelector(".range").getElementsByTagName("input")[0];
-            if (e.target.src.includes("img/volume.svg")) { 
-                e.target.src = "img/mute.svg";
-                rangeInput.value = 0; 
+        if (e.target.src.includes("volume.svg")) { 
+            e.target.src = "img/mute.svg";
+            document.querySelector(".range").getElementsByTagName("input")[0].value = 0; 
+            if (musicLibrary.currentAudio) {
                 musicLibrary.currentAudio.volume = 0;
-            } else {
-                rangeInput.value = 10;
-                e.target.src = "img/volume.svg";
-                musicLibrary.currentAudio.volume = 0.1;
             }
         } else {
-            console.log('No audio currently playing to mute/unmute.');
+            document.querySelector(".range").getElementsByTagName("input")[0].value = 10;
+            e.target.src = "img/volume.svg";
+            if (musicLibrary.currentAudio) {
+                musicLibrary.currentAudio.volume = 0.1;
+            }
         }
     });
 
-    // Playlist handling: Supports 'song', 'arijit-playlist', 'playlist-3', 'playlist-4', 'playlist-5', 'playlist-6', etc.
+    // Playlist handling: Supports 'song', 'playlist1', 'playlist2', and now 'playlist-3'
     Array.from(document.getElementsByClassName("card")).forEach(e => {
         e.addEventListener("click", async (item) => {
             console.log('Clicked playlist card:', item.currentTarget.dataset);
@@ -426,7 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     musicLibrary.setupPlaybarControls();
-    musicLibrary.setupVolumeControl();
+    // musicLibrary.setupVolumeControl(); // Removed since it's now defined outside the object
     musicLibrary.fetchSongsFromFolder('song').then(() => {
         musicLibrary.renderSongList();
     }).catch(error => {
