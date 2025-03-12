@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify - Web Player: Music for everyone</title>
+    <link rel="stylesheet" href="css/utility.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="logo.ico" type="image/x-icon">
+</head>
+
+<body>
+    <div class="container flex bg-black" style="height: 100vh;">
+        <div class="left">
+            <div class="cross">
+                <img class="invert" src="img/cross.svg" alt="" style="width: 30px; top: 20px;
+                position: absolute;
+                right: 20px;">
+            </div>
+            <div class="home bg-grey rounded margin">
+                <div class="logo">
+                    <img class="invert" src="img/logo.svg" alt="">
+                </div>
+                <ul>
+                    <li><img class="invert" src="img/home.svg" alt="home">Home</li>
+                    <li><img class="invert" src="img/search.svg" alt="home">Search</li>
+                </ul>
+            </div>
+            <div class="liberary rounded bg-grey bg-black margin">
+                <div class="heading">
+                    <img class="invert" src="img/playlist.svg" alt="">
+                    <h3>Your Library</h3>
+                </div>
+
+                <div class="songlist">
+                    <ul>
+                        <!-- Songs will be dynamically populated here by JavaScript -->
+                    </ul>
+                </div>
+
+                <div class="footer">
+                    <a href="https://www.spotify.com/in-en/legal/" data-encore-id="textLink">
+                        <span data-encore-id="type">Legal</span>
+                    </a>
+                    <a href="https://www.spotify.com/in-en/safetyandprivacy/" data-encore-id="textLink">
+                        <span data-encore-id="type">Safety & Privacy Center</span>
+                    </a>
+                    <a href="https://www.spotify.com/in-en/legal/privacy-policy/" data-encore-id="textLink">
+                        <span data-encore-id="type">Privacy Policy</span>
+                    </a>
+                    <a href="https://www.spotify.com/in-en/legal/cookies-policy/" data-encore-id="textLink">
+                        <span data-encore-id="type">Cookies</span>
+                    </a>
+                    <a href="https://www.spotify.com/in-en/legal/privacy-policy/#s3" data-encore-id="textLink">
+                        <span data-encore-id="type">About Ads</span>
+                    </a>
+                    <a href="https://www.spotify.com/in-en/accessibility/" data-encore-id="textLink">
+                        <span data-encore-id="type">Accessibility</span>
+                    </a>
+                    <a href="https://www.spotify.com/legal/cookies-policy/" target="_blank" rel="noopener">
+                        <span data-encore-id="text">Cookies</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="right bg-grey rounded">
+            <div class="header">
+                <div class="navs">
+                    <div class="flex" style="gap: 8px;">
+                        <img class="invert hamberger" src="img/hamberger.svg" alt="">
+                        <img class="invert" src="img/left-arrow.svg" alt="">
+                        <img class="invert" src="img/right-arrow.svg" alt="">
+                    </div>
+                </div>
+                <div class="buttons">
+                    <button class="signup-btn">Sign up</button>
+                    <button class="login-btn">Log in</button>
+                </div>
+            </div>
+
+            <div class="spotify">
+                <h1>Spotify Playlist</h1>
+
+                <div class="cardContainer flex">
+                    <div data-songs="song" class="card">
+                        <div class="playbutton">
+                            <img src="img/playbutton.svg" alt="">
+                        </div>
+                        <img src="https://marketplace.canva.com/EAFiWyXAmU0/2/0/800w/canva-pink-cyan-black-neon-tropical-summer-playlist-cover-MHMyh_ZThjw.jpg" alt="">
+                        <h2>Primary</h2>
+                        <p>Trending Songs</p>
+                    </div>
+
+                    <div data-songs="arijit-singh" class="card">
+                        <div class="playbutton">
+                            <img src="img/playbutton.svg" alt="">
+                        </div>
+                        <img src="https://img.wynk.in/unsafe/200x200/filters:no_upscale():strip_exif():format(jpg)/http://s3-ap-south-1.amazonaws.com/wynk-music-cms/music/package/Arijit-allTheWay.png" alt="">
+                        <h2>Arijit Playlist</h2>
+                        <p>Arijit Singh</p>
+                    </div>
+
+                    <div data-songs="playlist-3" class="card">
+                        <div class="playbutton">
+                            <img src="img/playbutton.svg" alt="">
+                        </div>
+                        <img src="https://marketplace.canva.com/EAFIQE_3-B0/1/0/800w/canva-blue-and-pink-gradient-romantic-playlist-cover-NnU3yyJBjw4.jpg" alt="">
+                        <h2>Crazy Songs</h2>
+                        <p>Bollywood</p>
+                    </div>
+
+                    <div data-songs="playlist-4" class="card">
+                        <div class="playbutton">
+                            <img src="img/playbutton.svg" alt="">
+                        </div>
+                        <img src="https://marketplace.canva.com/EAFISStNAPs/1/0/800w/canva-white-and-black-simple-90's-playlist-cover-85glYSq5GtU.jpg" alt="">
+                        <h2>Bollywood</h2>
+                        <p>Melody</p>
+                    </div>
+
+                    <div data-songs="playlist-5" class="card">
+                        <div class="playbutton">
+                            <img src="img/playbutton.svg" alt="">
+                        </div>
+                        <img src="https://i.scdn.co/image/ab67706c0000da84ec782462ad3e757fce6a1c11" alt="">
+                        <h2>English Era</h2>
+                        <p>English Songs</p>
+                    </div>
+
+                    <div data-songs="playlist-6" class="card">
+                        <div class="playbutton">
+                            <img src="img/playbutton.svg" alt="">
+                        </div>
+                        <img src="https://a10.gaanacdn.com/gn_img/albums/9En3pqeWXD/En3pey9eWX/size_m_1658485204.webp" alt="">
+                        <h2>Honey Singh</h2>
+                        <p>Yo Yo Honey Singh</p>
+                    </div>
+                </div>
+
+                <div class="playbar">
+                    <div class="seekbar">
+                        <div class="circle"></div>
+                    </div>
+                    <div class="abovebar">
+                        <div class="left-section">
+                            <div class="songinfo"></div>
+                        </div>
+                        <div class="center-section">
+                            <img id="previous" class="prev-button" src="img/previous.svg" alt="Previous">
+                            <img id="play" class="play-button" src="img/play.svg" alt="Play">
+                            <img id="next" class="next-button" src="img/next.svg" alt="Next">
+                        </div>
+                        <div class="right-section">
+                            <div class="songtime">00:00</div>
+                            <div class="volume">
+                                <img width="25px" class="invert" src="img/volume.svg" alt="Volume">
+                                <div class="range">
+                                    <input type="range" class="range" name="volume" min="0" max="100" value="10">
+                                </div>
+                            </div>
+                            <div class="song-duration">00:00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+
+</html>
