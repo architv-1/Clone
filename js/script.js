@@ -10,20 +10,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!folderPath || folderPath.trim() === '') {
                     throw new Error('No folder path specified.');
                 }
-
                 const fullPath = this.songsFolder + folderPath + '/';
                 console.log('Fetching songs from:', fullPath);
-
                 let response = await fetch(fullPath);
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
                 }
-
                 const data = await response.text();
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(data, 'text/html');
                 const links = doc.getElementsByTagName('a');
-
                 const newSongs = Array.from(links)
                     .filter(link => link.href.endsWith('.mp3'))
                     .map(link => ({
@@ -31,12 +27,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         url: fullPath + decodeURIComponent(link.href.split('/').pop())
                     }))
                     .sort((a, b) => a.name.localeCompare(b.name));
-
                 console.log('Fetched songs:', newSongs);
                 if (newSongs.length === 0) {
                     this.showError(`No MP3 files found in ${folderPath}.`);
                 }
-
                 return newSongs;
             } catch (error) {
                 console.error('Error loading songs from folder:', error);
@@ -52,14 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.showError('Failed to find song list container.');
                 return;
             }
-
             songList.innerHTML = '';
-
-            if (this.songs.length === 0) {
-                songList.innerHTML = '<li style="margin: 15px;">No songs available. Please Select Playlist</li>';
-                return;
-            }
-
+            
             this.songs.forEach((song, index) => {
                 const li = document.createElement('li');
                 li.className = 'song-item';
@@ -69,7 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 songList.appendChild(li);
             });
-
             document.querySelectorAll('.play-btn').forEach(button => {
                 button.removeEventListener('click', this.togglePlayPauseHandler);
                 button.addEventListener('click', this.togglePlayPauseHandler = (e) => {
@@ -86,7 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.showError('Failed to find library container.');
                 return;
             }
-
             if (this.currentAudio) {
                 this.currentAudio.pause();
                 this.currentAudio.currentTime = 0;
@@ -94,9 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.currentAudio.removeEventListener('ended', this.nextSong.bind(this));
                 this.currentAudio = null;
             }
-
             songList.innerHTML = '<li>Loading songs...</li>';
-
             this.fetchSongsFromFolder(folderPath).then(newSongs => {
                 this.songs = newSongs;
                 this.currentlyPlayingIndex = null;
@@ -111,11 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         async playSong(index) {
             const song = this.songs[index];
-            if (!song) {
-                this.showError('No song selected or available.');
-                return;
-            }
-
+            
             if (this.currentAudio) {
                 this.currentAudio.pause();
                 this.currentAudio.currentTime = 0;
@@ -123,10 +103,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.currentAudio.removeEventListener('ended', this.nextSong.bind(this));
                 this.currentAudio = null;
             }
-
             this.currentAudio = new Audio(song.url);
+            this.currentAudio.volume = 0.5; // Initialize volume to 50%
             this.currentlyPlayingIndex = parseInt(index);
-
             try {
                 await new Promise((resolve) => {
                     this.currentAudio.addEventListener('loadedmetadata', () => {
@@ -139,12 +118,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         resolve();
                     }, { once: true });
                 });
-
                 await this.currentAudio.play();
                 this.updatePlayButtons(index, 'Pause');
                 this.updatePlaybar('playing', song.name);
                 this.updateSongInfo(song.name);
-
                 this.currentAudio.addEventListener('timeupdate', () => this.updateProgressBar());
                 this.currentAudio.addEventListener('ended', () => this.nextSong());
             } catch (error) {
@@ -180,16 +157,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         playOrPause() {
             const playButtonImg = document.getElementById('play');
+            
             if (!playButtonImg) {
                 console.error('Play button not found in DOM.');
                 return;
             }
-
-            if (!this.songs.length) {
-                this.showError('Please Select Playlist.');
-                return;
-            }
-
+            
             if (this.currentAudio) {
                 if (this.currentAudio.paused) {
                     this.currentAudio.play().then(() => {
@@ -245,19 +218,17 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         updateProgressBar() {
-            if (!this.currentAudio || isNaN(this.currentAudio.duration)) return;
-
+            if (!this.currentAudio || isNaN(this.currentAudio.duration)) 
+                return;
             const progressBar = document.querySelector('.seekbar .circle');
             const progress = (this.currentAudio.currentTime / this.currentAudio.duration) * 100 || 0;
             progressBar.style.left = `${progress}%`;
-
             const songTime = document.querySelector('.songtime');
             const minutes = Math.floor(this.currentAudio.currentTime / 60).toString().padStart(2, '0');
             const seconds = Math.floor(this.currentAudio.currentTime % 60).toString().padStart(2, '0');
             if (songTime) {
                 songTime.textContent = `${minutes}:${seconds}`;
             }
-
             const songDuration = document.querySelector('.song-duration');
             if (songDuration && this.currentAudio.duration) {
                 const totalMinutes = Math.floor(this.currentAudio.duration / 60).toString().padStart(2, '0');
@@ -283,17 +254,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const playButtonImg = document.getElementById('play');
             const previousButton = document.getElementById('previous');
             const nextButton = document.getElementById('next');
-
             if (!playButtonImg || !previousButton || !nextButton) {
                 console.error('Playbar controls not found in DOM.');
                 this.showError('Playbar controls not found.');
                 return;
             }
-
             playButtonImg.addEventListener('click', () => this.playOrPause());
             previousButton.addEventListener('click', () => this.previousSong());
             nextButton.addEventListener('click', () => this.nextSong());
-
             const seekbar = document.querySelector('.seekbar');
             seekbar.addEventListener('mousedown', this.startSeeking.bind(this));
             document.addEventListener('mousemove', this.seek.bind(this));
@@ -306,21 +274,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Volume image not found in DOM.');
                 return;
             }
-
             volumeImg.addEventListener("click", (e) => {
                 console.log('Volume icon clicked:', e.target.src);
                 if (this.currentAudio) {
                     if (e.target.src.includes("volume.svg")) {
                         e.target.src = "img/mute.svg";
                         this.currentAudio.volume = 0;
+                        document.querySelector(".range").getElementsByTagName("input")[0].value = 0;
                     } else {
                         e.target.src = "img/volume.svg";
-                        this.currentAudio.volume = 0.1;
+                        this.currentAudio.volume = 0.2;
+                        document.querySelector(".range").getElementsByTagName("input")[0].value = 20;
                     }
                 } else {
                     console.log('No audio currently playing to mute/unmute.');
                 }
             });
+        },
+
+        initializeVolume() {
+            const volumeSlider = document.querySelector(".range").getElementsByTagName("input")[0];
+            if (volumeSlider) {
+                volumeSlider.value = 50; // Set default volume slider to 50
+            }
+        },
+
+        showSidebar() {
+            const sidebar = document.querySelector(".left");
+            if (sidebar) {
+                sidebar.style.left = "0"; // Show the sidebar
+            }
         },
 
         startSeeking(event) {
@@ -331,14 +314,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         seek(event) {
             if (!this.isSeeking || !this.currentAudio || isNaN(this.currentAudio.duration)) return;
-
             const seekbar = document.querySelector('.seekbar');
             const rect = seekbar.getBoundingClientRect();
             const offsetX = event.clientX - rect.left;
             const totalWidth = rect.width;
             const percent = Math.max(0, Math.min(1, offsetX / totalWidth));
             const newTime = percent * this.currentAudio.duration;
-
             this.currentAudio.currentTime = newTime;
             this.updateProgressBar();
         },
@@ -368,43 +349,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (musicLibrary.currentAudio) {
             musicLibrary.currentAudio.volume = parseInt(e.target.value) / 100;
         }
-        if(currentAudio.volume>0){
+        if (musicLibrary.currentAudio && musicLibrary.currentAudio.volume > 0) {
             document.querySelector(".volume>img").src = document.querySelector(".volume>img").src.replace("mute.svg", "volume.svg");
         }
     });
 
-    document.querySelector(".volume>img").addEventListener("click", e => {
-        if (e.target.src.includes("volume.svg")) { 
-            e.target.src = "img/mute.svg";
-            document.querySelector(".range").getElementsByTagName("input")[0].value = 0; 
-            if (musicLibrary.currentAudio) {
-                musicLibrary.currentAudio.volume = 0;
-            }
-        } else {
-            document.querySelector(".range").getElementsByTagName("input")[0].value = 10;
-            e.target.src = "img/volume.svg";
-            if (musicLibrary.currentAudio) {
-                musicLibrary.currentAudio.volume = 0.1;
-            }
-        }
-    });
-
-    // Playlist handling: Supports 'song', 'playlist1', 'playlist2', and now 'playlist-3'
     Array.from(document.getElementsByClassName("card")).forEach(e => {
         e.addEventListener("click", async (item) => {
             console.log('Clicked playlist card:', item.currentTarget.dataset);
             const playlistFolder = item.currentTarget.dataset.songs;
             if (playlistFolder) {
                 musicLibrary.updatePlaylistSongs(playlistFolder);
-            } else {
-                console.error('No playlist folder specified in data-songs');
-                musicLibrary.showError('No playlist folder specified.');
+                musicLibrary.showSidebar(); // Show sidebar when playlist is clicked
             }
         });
     });
 
+    musicLibrary.initializeVolume();
     musicLibrary.setupPlaybarControls();
-    // musicLibrary.setupVolumeControl(); // Removed since it's now defined outside the object
+    musicLibrary.setupVolumeControl();
     musicLibrary.fetchSongsFromFolder('song').then(() => {
         musicLibrary.renderSongList();
     }).catch(error => {
