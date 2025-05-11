@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         console.error('Error resuming playback:', error);
                         this.showError('Failed to resume playback.');
                     });
-                } else {
+                } else{
                     this.currentAudio.pause();
                     selectedButton.textContent = 'Play';
                     this.updatePlaybar('paused');
@@ -158,10 +158,6 @@ document.addEventListener('DOMContentLoaded', () => {
         playOrPause() {
             const playButtonImg = document.getElementById('play');
             
-            if (!playButtonImg) {
-                console.error('Play button not found in DOM.');
-                return;
-            }
             
             if (this.currentAudio) {
                 if (this.currentAudio.paused) {
@@ -303,6 +299,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const sidebar = document.querySelector(".left");
             if (sidebar) {
                 sidebar.style.left = "0"; // Show the sidebar
+            } else {
+                console.error('Sidebar (.left) not found in DOM.');
+                this.showError('Sidebar not found.');
             }
         },
 
@@ -360,9 +359,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const playlistFolder = item.currentTarget.dataset.songs;
             if (playlistFolder) {
                 musicLibrary.updatePlaylistSongs(playlistFolder);
-                musicLibrary.showSidebar(); // Show sidebar when playlist is clicked
+                musicLibrary.showSidebar();
+            } else {
+                console.error('No playlist folder specified in data-songs');
+                musicLibrary.showError('No playlist folder specified.');
             }
         });
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === ' ' || event.code === 'Space') {
+            // Prevent default space bar behavior (e.g., scrolling)
+            event.preventDefault();
+            musicLibrary.playOrPause();
+        }
     });
 
     musicLibrary.initializeVolume();
